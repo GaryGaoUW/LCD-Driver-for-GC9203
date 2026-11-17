@@ -77,6 +77,9 @@ private:
   void initDisplay();
   void buildLUT();
 
+  // Send pixels [x0, x1] of one row as a single window + burst, clearing dirty flags.
+  void flushSegment(int16_t row, int16_t x0, int16_t x1);
+
   // Compute the Entry Mode register value for the current _rotation.
   uint16_t entryModeValue() const;
 

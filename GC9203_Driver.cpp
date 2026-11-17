@@ -65,40 +65,31 @@ void GC9203_Driver::display() {
         if (x_start == -1) {
           x_start = x;
         } else if ((x - prev_x) > SEPARATION_THRESHOLD) {
-          // Gap exceeds threshold — flush current segment and start a new one.
-          setWindow(static_cast<uint16_t>(x_start),
-                    static_cast<uint16_t>(row),
-                    static_cast<uint16_t>(prev_x),
-                    static_cast<uint16_t>(row));
-          startDataBurst();
-          for (int16_t i = x_start; i <= prev_x; ++i) {
-            framebuffer[row][i] &= ~0x01u;
-            transferPixel(lut[framebuffer[row][i]]);
-          }
-          endDataBurst();
+          // Gap exceeds threshold: flush current segment and start a new one.
+          flushSegment(row, x_start, prev_x);
           x_start = x;
         }
         prev_x = x;
       }
     }
 
-    if (x_start != -1) { // flush trailing segment
-      setWindow(static_cast<uint16_t>(x_start),
-                static_cast<uint16_t>(row),
-                static_cast<uint16_t>(prev_x),
-                static_cast<uint16_t>(row));
-      startDataBurst();
-      for (int16_t i = x_start; i <= prev_x; ++i) {
-        framebuffer[row][i] &= ~0x01u;
-        transferPixel(lut[framebuffer[row][i]]);
-      }
-      endDataBurst();
-    }
+    if (x_start != -1) flushSegment(row, x_start, prev_x);
 
     update_row[row / 8] &= static_cast<uint8_t>(~(1 << (row % 8)));
   }
 
   SPI.endTransaction();
+}
+
+void GC9203_Driver::flushSegment(int16_t row, int16_t x0, int16_t x1) {
+  setWindow(static_cast<uint16_t>(x0), static_cast<uint16_t>(row),
+            static_cast<uint16_t>(x1), static_cast<uint16_t>(row));
+  startDataBurst();
+  for (int16_t i = x0; i <= x1; ++i) {
+    framebuffer[row][i] &= ~0x01u;
+    transferPixel(lut[framebuffer[row][i]]);
+  }
+  endDataBurst();
 }
 
 // Framebuffer byte: bits[7:1] = colour, bit[0] = dirty flag.
