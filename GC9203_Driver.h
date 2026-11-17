@@ -9,6 +9,16 @@
 #include <Arduino.h>
 #include <SPI.h>
 
+// 7-bit colours in 2:3:2 R:G:B format: R = bits[6:5], G = bits[4:2], B = bits[1:0].
+#define COLOR_BLACK   0x00
+#define COLOR_RED     (0b11 << 5)
+#define COLOR_GREEN   (0b111 << 2)
+#define COLOR_BLUE    (0b11)
+#define COLOR_WHITE   0x7F
+#define COLOR_YELLOW  (COLOR_RED | COLOR_GREEN)
+#define COLOR_CYAN    (COLOR_GREEN | COLOR_BLUE)
+#define COLOR_MAGENTA (COLOR_RED | COLOR_BLUE)
+
 class GC9203_Driver {
 public:
   // Screen dimensions (use these instead of magic numbers in your sketch)
@@ -31,7 +41,7 @@ public:
   // Fill the framebuffer with black and mark every pixel as dirty.
   void clearDisplay();
 
-  // Fill the framebuffer with a solid 8-bit colour and mark every pixel as dirty.
+  // Fill the framebuffer with a solid 7-bit colour and mark every pixel as dirty.
   void fillScreen(uint8_t color);
 
   // Set a single pixel in the framebuffer.  Call display() to push changes.
@@ -62,15 +72,13 @@ private:
   bool    _initialized;
 
   // ── Framebuffer & LUT ──────────────────────────────────────────────────────
-  // Each byte packs an 8-bit colour in bits[7:1] and a dirty flag in bit[0].
-  // The 8-bit colour space is 2:3:2 R:G:B.
+  // Each byte packs a 7-bit colour in bits[7:1] and a dirty flag in bit[0].
+  // 128 x 220 x 1 B = 28,160 B, half of a 56,320 B RGB565 framebuffer.
   uint8_t  framebuffer[HEIGHT][WIDTH];
   // Dirty-row quick-skip bitmap: bit (row % 8) of byte (row / 8) is set when
   // any pixel in that row needs to be flushed.
   uint8_t  update_row[ROW_QUICK_SKIP];
-  // Lookup table: 8-bit colour index → RGB565 value ready for the controller.
-  // Only even indices carry meaningful colour (odd indices have the dirty flag
-  // OR'd in and are not looked up).
+  // Lookup table: framebuffer byte (dirty flag cleared) -> RGB565.
   uint16_t lut[256];
 
   // ── Private helpers ────────────────────────────────────────────────────────

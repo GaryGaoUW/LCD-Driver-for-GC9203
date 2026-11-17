@@ -14,18 +14,6 @@
 // Create an instance of the driver
 GC9203_Driver lcd = GC9203_Driver(SCK_PIN, MOSI_PIN, CS_PIN, DC_PIN, RST_PIN);
 
-// Define some 8-bit colors (using the 2:3:2 R:G:B scheme)
-// R (bits 7-6), G (bits 5-3), B (bits 2-1)
-// Bit 0 is the update flag, so we define colors from 0-127
-#define COLOR_BLACK   0
-#define COLOR_RED     (0b11 << 5) // 96
-#define COLOR_GREEN   (0b111 << 2) // 28
-#define COLOR_BLUE    (0b11) // 3
-#define COLOR_WHITE   (0b1111111) // 127
-#define COLOR_YELLOW  (COLOR_RED | COLOR_GREEN)
-#define COLOR_CYAN    (COLOR_GREEN | COLOR_BLUE)
-#define COLOR_MAGENTA (COLOR_RED | COLOR_BLUE)
-
 
 void setup() {
   Serial.begin(115200); // Use a faster baud rate
